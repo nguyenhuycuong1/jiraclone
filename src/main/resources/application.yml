@@ -1,0 +1,31 @@
+spring:
+  application:
+    name: jira-clone-app
+  datasource:
+    url: jdbc:postgresql://localhost:5432/jiraclone
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+
+server:
+  port: 8080
+
+app:
+  security:
+    jwt:
+      # Base64-encoded secret (min 256 bits). Override via JWT_SECRET env var in production.
+      secret: ${JWT_SECRET:dGhpcy1pcy1hLXZlcnktbG9uZy1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tZ2VuZXJhdGlvbg==}
+      expiration: 86400000 # 24h in milliseconds
+
+logging:
+  level:
+    com.jiraclone: DEBUG
+    org.springframework.security: INFO
