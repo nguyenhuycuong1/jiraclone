@@ -2,9 +2,12 @@ package com.jiraclone.service;
 
 import com.jiraclone.dto.auth.JwtResponse;
 import com.jiraclone.dto.auth.LoginRequest;
+import com.jiraclone.dto.auth.LoginResult;
 import com.jiraclone.dto.auth.RegisterRequest;
+import com.jiraclone.entity.RefreshToken;
 import com.jiraclone.entity.User;
 import com.jiraclone.exception.AppException;
+import com.jiraclone.repository.RefreshTokenRepository;
 import com.jiraclone.repository.UserRepository;
 import com.jiraclone.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -17,23 +20,29 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public JwtResponse login(LoginRequest request) {
+    public LoginResult login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         request.getUsernameOrEmail(), request.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         User user = (User) authentication.getPrincipal();
         String token = jwtTokenProvider.generateToken(user);
-        return new JwtResponse(token, user.getUsername(), user.getEmail());
+        String refreshToken = generateRefreshToken(user).getToken();
+        return new LoginResult(token, refreshToken,user.getUsername(), user.getEmail());
     }
 
     @Transactional
@@ -51,5 +60,15 @@ public class AuthService {
                 .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getUsername())
                 .build();
         userRepository.save(user);
+    }
+
+    private RefreshToken generateRefreshToken(User user) {
+        RefreshToken refreshToken = RefreshToken.builder()
+                .token(UUID.randomUUID().toString())
+                .user(user)
+                .expiresAt(Instant.now().plus(30, ChronoUnit.DAYS))
+                .revoked(false)
+                .build();
+        return refreshTokenRepository.save(refreshToken);
     }
 }
