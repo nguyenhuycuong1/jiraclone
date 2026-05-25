@@ -34,6 +34,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
 
+    @Transactional
     public LoginResult login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -42,7 +43,7 @@ public class AuthService {
         User user = (User) authentication.getPrincipal();
         String token = jwtTokenProvider.generateToken(user);
         String refreshToken = generateRefreshToken(user).getToken();
-        return new LoginResult(token, refreshToken,user.getUsername(), user.getEmail());
+        return new LoginResult(token, refreshToken, user.getUsername(), user.getEmail());
     }
 
     @Transactional
@@ -70,5 +71,38 @@ public class AuthService {
                 .revoked(false)
                 .build();
         return refreshTokenRepository.save(refreshToken);
+    }
+
+    @Transactional
+    public LoginResult refresh(String refreshToken) {
+        RefreshToken token = refreshTokenRepository.findByToken(refreshToken);
+        if (token == null || token.getRevoked() || token.getExpiresAt().isBefore(Instant.now())) {
+            throw new AppException(HttpStatus.UNAUTHORIZED, "Invalid refresh token");
+        }
+        User user = token.getUser();
+        // Create new access token
+        String newToken = jwtTokenProvider.generateToken(user);
+
+        // revoke old refresh token
+        token.setRevoked(true);
+        refreshTokenRepository.save(token);
+
+        // generate new refresh token
+        String newRefreshToken = generateRefreshToken(user).getToken();
+
+        return new LoginResult(newToken, newRefreshToken, user.getUsername(), user.getEmail());
+    }
+
+    @Transactional
+    public void logout(String refreshToken, boolean revokeAll) {
+        RefreshToken token = refreshTokenRepository.findByToken(refreshToken);
+        if (token != null) {
+            if (revokeAll) {
+                refreshTokenRepository.revokeAllByUserId(token.getUser().getId());
+            } else {
+                token.setRevoked(true);
+                refreshTokenRepository.save(token);
+            }
+        }
     }
 }

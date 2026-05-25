@@ -24,6 +24,8 @@ app:
       # Base64-encoded secret (min 256 bits). Override via JWT_SECRET env var in production.
       secret: ${JWT_SECRET:dGhpcy1pcy1hLXZlcnktbG9uZy1zZWNyZXQta2V5LWZvci1qd3QtdG9rZW4tZ2VuZXJhdGlvbg==}
       expiration: 900000 # 15m in milliseconds
+    token-cleanup:
+      cron: "0 0 3 * * *" # 3 AM every day
 
 logging:
   level:

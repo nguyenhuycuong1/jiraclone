@@ -49,4 +49,48 @@ public class AuthController {
         authService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<JwtResponse> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken, HttpServletResponse response) {
+        if (refreshToken == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        LoginResult result = authService.refresh(refreshToken);
+
+        ResponseCookie cookie = ResponseCookie.from("refreshToken", result.getRefreshToken())
+                .httpOnly(true)
+                .secure(true)
+                .path("/api/auth/refresh")
+                .sameSite("Strict")
+                .maxAge(Duration.ofDays(30))
+                .build();
+
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
+        return ResponseEntity.ok(new JwtResponse(
+                result.getAccessToken(),
+                result.getUsername(),
+                result.getEmail()
+        ));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            @CookieValue(name = "refreshToken", required = false) String refreshToken,
+            @RequestParam(defaultValue = "false") boolean revokeAll,
+            HttpServletResponse response)
+    {
+        if (refreshToken != null) {
+            authService.logout(refreshToken, revokeAll);
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", "")
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/api/auth/refresh")
+                    .sameSite("Strict")
+                    .maxAge(0)
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+        }
+        return ResponseEntity.noContent().build();
+    }
 }
