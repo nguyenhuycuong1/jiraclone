@@ -8,6 +8,7 @@ import com.jiraclone.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -23,13 +24,16 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @Value("${app.security.cookie.secure:false}")
+    private boolean cookieSecure;
+
     @PostMapping("/login")
     public ResponseEntity<JwtResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         LoginResult result = authService.login(request);
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", result.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
+                .secure(cookieSecure)
                 .path("/api/auth/refresh")
                 .sameSite("Strict")
                 .maxAge(Duration.ofDays(30))
@@ -59,7 +63,7 @@ public class AuthController {
 
         ResponseCookie cookie = ResponseCookie.from("refreshToken", result.getRefreshToken())
                 .httpOnly(true)
-                .secure(true)
+                .secure(cookieSecure)
                 .path("/api/auth/refresh")
                 .sameSite("Strict")
                 .maxAge(Duration.ofDays(30))
