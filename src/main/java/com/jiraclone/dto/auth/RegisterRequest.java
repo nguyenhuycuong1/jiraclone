@@ -12,8 +12,8 @@ public class RegisterRequest {
     @Size(min = 3, max = 50)
     private String username;
 
-    @NotBlank
-    @Email
+    @NotBlank(message = "{user.email.required}")
+    @Email(message = "{user.email.invalid}")
     private String email;
 
     @NotBlank

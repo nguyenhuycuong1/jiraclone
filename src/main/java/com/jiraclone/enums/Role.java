@@ -1,4 +1,4 @@
-package com.jiraclone.entity;
+package com.jiraclone.enums;
 
 public enum Role {
     USER, ADMIN

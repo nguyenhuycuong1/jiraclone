@@ -1,6 +1,10 @@
 package com.jiraclone.entity;
 
+import com.jiraclone.enums.Role;
+import com.jiraclone.enums.UserState;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,6 +28,8 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @NotBlank(message = "{user.email.required}")
+    @Email(message = "{user.email.invalid}")
     @Column(unique = true, nullable = false)
     private String email;
 
@@ -40,6 +46,10 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.USER;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private UserState status = UserState.PENDING_VERIFY;
 
     @Builder.Default
     private boolean enabled = true;

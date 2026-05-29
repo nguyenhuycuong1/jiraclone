@@ -11,6 +11,7 @@ import com.jiraclone.repository.RefreshTokenRepository;
 import com.jiraclone.repository.UserRepository;
 import com.jiraclone.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,10 +21,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthService {
@@ -54,6 +57,8 @@ public class AuthService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Username already taken");
         }
+        String otp = generateOTP();
+        log.info("Generated OTP: {}", otp);
         User user = User.builder()
                 .email(request.getEmail())
                 .username(request.getUsername())
@@ -104,5 +109,10 @@ public class AuthService {
                 refreshTokenRepository.save(token);
             }
         }
+    }
+
+    private String generateOTP() {
+        SecureRandom random = new SecureRandom();
+        return String.valueOf(random.nextInt(900000) + 100000); // 6-digit OTP
     }
 }
