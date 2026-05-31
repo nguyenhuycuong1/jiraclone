@@ -1,9 +1,6 @@
 package com.jiraclone.controller;
 
-import com.jiraclone.dto.auth.JwtResponse;
-import com.jiraclone.dto.auth.LoginRequest;
-import com.jiraclone.dto.auth.LoginResult;
-import com.jiraclone.dto.auth.RegisterRequest;
+import com.jiraclone.dto.auth.*;
 import com.jiraclone.service.AuthService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -96,5 +93,11 @@ public class AuthController {
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/verify-otp")
+    public ResponseEntity<Boolean> verifyOtp(@RequestBody VerifyOtpRequest request) {
+        boolean isValid = authService.verifyOTP(request);
+        return ResponseEntity.ok(isValid);
     }
 }

@@ -1,17 +1,19 @@
 package com.jiraclone.service;
 
-import com.jiraclone.dto.auth.JwtResponse;
 import com.jiraclone.dto.auth.LoginRequest;
 import com.jiraclone.dto.auth.LoginResult;
 import com.jiraclone.dto.auth.RegisterRequest;
+import com.jiraclone.dto.auth.VerifyOtpRequest;
 import com.jiraclone.entity.RefreshToken;
 import com.jiraclone.entity.User;
+import com.jiraclone.enums.UserState;
 import com.jiraclone.exception.AppException;
 import com.jiraclone.repository.RefreshTokenRepository;
 import com.jiraclone.repository.UserRepository;
 import com.jiraclone.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +27,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
@@ -36,6 +39,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     @Transactional
     public LoginResult login(LoginRequest request) {
@@ -44,6 +48,9 @@ public class AuthService {
                         request.getUsernameOrEmail(), request.getPassword()));
         SecurityContextHolder.getContext().setAuthentication(authentication);
         User user = (User) authentication.getPrincipal();
+        if (user.getStatus() == UserState.PENDING_VERIFY) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Account pending verification. Please verify your email.");
+        }
         String token = jwtTokenProvider.generateToken(user);
         String refreshToken = generateRefreshToken(user).getToken();
         return new LoginResult(token, refreshToken, user.getUsername(), user.getEmail());
@@ -58,7 +65,7 @@ public class AuthService {
             throw new AppException(HttpStatus.BAD_REQUEST, "Username already taken");
         }
         String otp = generateOTP();
-        log.info("Generated OTP: {}", otp);
+        redisTemplate.opsForValue().set("otp:" + request.getEmail(), otp, 10, TimeUnit.of(ChronoUnit.MINUTES));
         User user = User.builder()
                 .email(request.getEmail())
                 .username(request.getUsername())
@@ -114,5 +121,26 @@ public class AuthService {
     private String generateOTP() {
         SecureRandom random = new SecureRandom();
         return String.valueOf(random.nextInt(900000) + 100000); // 6-digit OTP
+    }
+
+    @Transactional
+    public Boolean verifyOTP(VerifyOtpRequest request) {
+        User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.getStatus() != UserState.PENDING_VERIFY) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "User already verified");
+        }
+
+        String storedOTP = (String) redisTemplate.opsForValue().get("otp:" + request.getEmail());
+        if (storedOTP == null || !storedOTP.equals(request.getOtp())) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "Invalid or expired OTP");
+        }
+
+        user.setStatus(UserState.ACTIVE);
+        userRepository.save(user);
+
+        redisTemplate.delete("otp:" + request.getEmail());
+
+        return true;
     }
 }
