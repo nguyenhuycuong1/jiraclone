@@ -40,6 +40,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final EmailService emailService;
 
     @Transactional
     public LoginResult login(LoginRequest request) {
@@ -64,8 +65,7 @@ public class AuthService {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Username already taken");
         }
-        String otp = generateOTP();
-        redisTemplate.opsForValue().set("otp:" + request.getEmail(), otp, 10, TimeUnit.of(ChronoUnit.MINUTES));
+        sendOTP(request.getEmail());
         User user = User.builder()
                 .email(request.getEmail())
                 .username(request.getUsername())
@@ -142,5 +142,24 @@ public class AuthService {
         redisTemplate.delete("otp:" + request.getEmail());
 
         return true;
+    }
+
+    public void resendOTP(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "User not found"));
+
+        if (user.getStatus() != UserState.PENDING_VERIFY) {
+            throw new AppException(HttpStatus.BAD_REQUEST, "User already verified");
+        }
+
+        String otp = generateOTP();
+        redisTemplate.opsForValue().set("otp:" + email, otp, 10, TimeUnit.of(ChronoUnit.MINUTES));
+
+        emailService.sendMail(email, "OTP for registering a Jiraclone account", "Your OTP code is: " + otp);
+    }
+    public void sendOTP(String email) {
+        String otp = generateOTP();
+        redisTemplate.opsForValue().set("otp:" + email, otp, 10, TimeUnit.of(ChronoUnit.MINUTES));
+
+        emailService.sendMail(email, "OTP for registering a Jiraclone account", "Your OTP code is: " + otp);
     }
 }

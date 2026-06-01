@@ -100,4 +100,10 @@ public class AuthController {
         boolean isValid = authService.verifyOTP(request);
         return ResponseEntity.ok(isValid);
     }
+
+    @PostMapping("/resend-otp/{email}")
+    public ResponseEntity<Void> resendOTP(@PathVariable String email) {
+        authService.resendOTP(email);
+        return ResponseEntity.noContent().build();
+    }
 }
