@@ -39,6 +39,11 @@ spring:
           auth: true
           starttls:
             enable: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
 
 server:
   port: 8080
@@ -53,6 +58,14 @@ app:
       secure: false # set true in production (requires HTTPS)
     token-cleanup:
       cron: "0 0 3 * * *" # 3 AM every day
+
+cloudflare:
+  r2:
+    account-id: ${CLOUDFLARE_R2_ACCOUNT_ID}
+    access-key: ${CLOUDFLARE_R2_ACCESS_KEY}
+    secret-key: ${CLOUDFLARE_R2_SECRET_KEY}
+    bucket-name: ${CLOUDFLARE_R2_BUCKET_NAME}
+    public-url: ${CLOUDFLARE_R2_PUBLIC_URL}
 
 logging:
   level:
