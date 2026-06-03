@@ -10,6 +10,7 @@ import com.jiraclone.enums.UserState;
 import com.jiraclone.exception.AppException;
 import com.jiraclone.repository.RefreshTokenRepository;
 import com.jiraclone.repository.UserRepository;
+import com.jiraclone.security.CustomUserDetails;
 import com.jiraclone.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -106,7 +107,9 @@ public class AuthService {
         redisTemplate.delete(failLoginKey(key));
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-        User user = (User) authentication.getPrincipal();
+        CustomUserDetails principal = (CustomUserDetails) authentication.getPrincipal();
+        User user = userRepository.findById(principal.getId())
+                .orElseThrow(() -> new AppException(HttpStatus.NOT_FOUND, "User not found"));
 
         if (user.getStatus() == UserState.PENDING_VERIFY) {
             throw new AppException(HttpStatus.BAD_REQUEST, "Account pending verification. Please verify your email.");

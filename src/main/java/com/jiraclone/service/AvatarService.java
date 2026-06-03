@@ -52,7 +52,9 @@ public class AvatarService {
         user.setAvatarUrl(newUrl);
         userRepository.save(user);
 
-        return "";
+        deleteOldAvatarAsync(oldUrl);
+
+        return newUrl;
     }
 
     public void validateFile(MultipartFile file) {

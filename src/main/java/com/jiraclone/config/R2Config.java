@@ -18,7 +18,7 @@ public class R2Config {
     @Bean
     public S3Client s3Client() {
         return S3Client.builder()
-                .endpointOverride(URI.create(props.getPublicUrl()))
+                .endpointOverride(URI.create(props.getEndpoint()))
                 .region(Region.of("auto"))
                 .credentialsProvider(
                         StaticCredentialsProvider.create(

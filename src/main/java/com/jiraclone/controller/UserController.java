@@ -2,12 +2,12 @@ package com.jiraclone.controller;
 
 import com.jiraclone.dto.user.UserResponse;
 import com.jiraclone.repository.UserRepository;
+import com.jiraclone.security.CustomUserDetails;
 import com.jiraclone.service.AvatarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,10 +33,13 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-//    @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-//    public ResponseEntity<Map<String, String>> updateAvatar(
-//            @RequestPart("file") MultipartFile file,
-//            @AuthenticationPrincipal UserDetails userDetails
-//    ) throws IOException {
-//    }
+    @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, String>> updateAvatar(
+            @RequestPart("file") MultipartFile file,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) throws IOException {
+        UUID userId = userDetails.getId();
+        String avatarUrl = avatarService.uploadAvatar(userId, file);
+        return ResponseEntity.ok(Map.of("avatarUrl", avatarUrl));
+    }
 }

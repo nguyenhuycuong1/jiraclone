@@ -13,5 +13,6 @@ public class R2Properties {
     private String accessKey;
     private String secretKey;
     private String bucketName;
-    private String publicUrl;
+    private String endpoint;   // https://<account-id>.r2.cloudflarestorage.com
+    private String publicUrl;  // https://pub-xxx.r2.dev or custom domain
 }
