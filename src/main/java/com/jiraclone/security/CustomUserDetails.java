@@ -13,13 +13,15 @@ public class CustomUserDetails implements UserDetails {
     private final String email;
     private final String username;
     private final String password;
+    private final UUID orgId;
     private final Collection<? extends GrantedAuthority> authorities;
 
-    public CustomUserDetails(UUID id, String email, String username, String password, Collection<? extends GrantedAuthority> authorities) {
+    public CustomUserDetails(UUID id, String email, String username, String password, UUID orgId,Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.username = username;
         this.password = password;
+        this.orgId = orgId;
         this.authorities = authorities;
     }
 

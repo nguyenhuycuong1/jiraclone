@@ -120,7 +120,7 @@ public class AuthService {
         if (user.getStatus() == UserState.DELETED) {
             throw new AppException(HttpStatus.FORBIDDEN, "Account deleted. Please contact support.");
         }
-        String token = jwtTokenProvider.generateToken(user);
+        String token = jwtTokenProvider.generateToken(toUserDetails(user));
         String refreshToken = generateRefreshToken(user).getToken();
         return new LoginResult(token, refreshToken, user.getUsername(), user.getEmail());
     }
@@ -161,7 +161,7 @@ public class AuthService {
         }
         User user = token.getUser();
         // Create new access token
-        String newToken = jwtTokenProvider.generateToken(user);
+        String newToken = jwtTokenProvider.generateToken(toUserDetails(user));
 
         // revoke old refresh token
         token.setRevoked(true);
@@ -227,5 +227,17 @@ public class AuthService {
         redisTemplate.opsForValue().set("otp:" + email, otp, 10, TimeUnit.of(ChronoUnit.MINUTES));
 
         emailService.sendMail(email, "OTP for registering a Jiraclone account", "Your OTP code is: " + otp);
+    }
+
+    private CustomUserDetails toUserDetails(User user) {
+        UUID orgId = user.getOrganization() != null ? user.getOrganization().getId() : null;
+        return new CustomUserDetails(
+                user.getId(),
+                user.getEmail(),
+                user.getUsername(),
+                user.getPassword(),
+                orgId,
+                user.getAuthorities()
+        );
     }
 }

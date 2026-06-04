@@ -10,6 +10,7 @@ import java.util.UUID;
 public class UserResponse {
 
     private final UUID id;
+    private final UUID orgId;
     private final String username;
     private final String email;
     private final String displayName;
@@ -19,6 +20,7 @@ public class UserResponse {
 
     public UserResponse(User user) {
         this.id = user.getId();
+        this.orgId = user.getOrganization() != null ? user.getOrganization().getId() : null;
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.displayName = user.getDisplayName();

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -26,11 +27,14 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
+        UUID orgId = user.getOrganization() != null ? user.getOrganization().getId() : null;
+
         return new CustomUserDetails(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
                 user.getPassword(),
+                orgId,
                 authorities
         );
     }

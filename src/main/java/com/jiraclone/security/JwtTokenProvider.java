@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Objects;
 
 @Component
 public class JwtTokenProvider {
@@ -25,22 +27,32 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(UserDetails userDetails) {
-        return Jwts.builder()
+    public String generateToken(CustomUserDetails userDetails) {
+        var builder = Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(getSigningKey())
-                .compact();
+                .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs));
+        if (userDetails.getOrgId() != null) {
+            builder.claim("org_id", userDetails.getOrgId().toString());
+        }
+        return builder.signWith(getSigningKey()).compact();
     }
 
-    public String extractUsername(String token) {
-        return parseClaims(token).getSubject();
+    public JwtPayload extractJwtPayload(String token) {
+        JwtPayload payload = new JwtPayload();
+        Claims claims = parseClaims(token);
+        payload.setUsername(claims.getSubject());
+        payload.setOrgId(claims.get("org_id", String.class));
+        return payload;
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public boolean validateToken(String token, CustomUserDetails userDetails) {
+        JwtPayload jwtPayload = extractJwtPayload(token);
+        if (!jwtPayload.getUsername().equals(userDetails.getUsername())) return false;
+        if (isTokenExpired(token)) return false;
+        String tokenOrgId = jwtPayload.getOrgId();
+        String userOrgId = userDetails.getOrgId() != null ? userDetails.getOrgId().toString() : null;
+        return Objects.equals(tokenOrgId, userOrgId);
     }
 
     private boolean isTokenExpired(String token) {

@@ -1,5 +1,6 @@
 package com.jiraclone.security;
 
+import com.jiraclone.config.TenantContextHolder;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -32,22 +32,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(token)) {
             try {
-                String username = jwtTokenProvider.extractUsername(token);
+                JwtPayload jwtPayload = jwtTokenProvider.extractJwtPayload(token);
+                String username = jwtPayload.getUsername();
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    CustomUserDetails userDetails = (CustomUserDetails) userDetailsService.loadUserByUsername(username);
                     if (jwtTokenProvider.validateToken(token, userDetails)) {
                         var authToken = new UsernamePasswordAuthenticationToken(
                                 userDetails, null, userDetails.getAuthorities());
                         authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(authToken);
+
+                        String orgId = jwtPayload.getOrgId();
+                        if (orgId != null) {
+                            TenantContextHolder.setTenantId(orgId);
+                        }
                     }
                 }
             } catch (Exception e) {
                 log.warn("Invalid JWT token: {}", e.getMessage());
             }
         }
-
-        filterChain.doFilter(request, response);
+        try {
+            filterChain.doFilter(request, response);
+        } finally {
+            TenantContextHolder.clear();
+        }
     }
 
     private String extractTokenFromRequest(HttpServletRequest request) {

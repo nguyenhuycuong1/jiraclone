@@ -51,6 +51,10 @@ public class User implements UserDetails {
     @Builder.Default
     private UserState status = UserState.PENDING_VERIFY;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "org_id", referencedColumnName = "id")
+    private Organization organization;
+
     @Builder.Default
     private boolean enabled = true;
 
