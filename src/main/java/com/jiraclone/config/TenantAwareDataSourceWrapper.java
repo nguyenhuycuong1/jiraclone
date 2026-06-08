@@ -34,14 +34,12 @@ public class TenantAwareDataSourceWrapper implements DataSource {
         if (tenantId != null) {
             try (Statement stmt = connection.createStatement()) {
                 stmt.execute(
-                        String.format("SET LOCAL app.current_org_id = '%s'", tenantId.replace("'", "''"))
+                        String.format("SET app.current_org_id = '%s'", tenantId.replace("'", "''"))
                 );
             }
         } else {
             try (Statement stmt = connection.createStatement()) {
-                stmt.execute(
-                        String.format("SET LOCAL app.current_org_id = ''")
-                );
+                stmt.execute("SET app.current_org_id = ''");
             }
         }
     }
