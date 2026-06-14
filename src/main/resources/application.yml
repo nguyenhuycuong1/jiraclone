@@ -44,6 +44,19 @@ spring:
       max-file-size: 5MB
       max-request-size: 6MB
 
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 3000
+          max-attempts: 5
+          multiplier: 2
+
 
 server:
   port: 8080
