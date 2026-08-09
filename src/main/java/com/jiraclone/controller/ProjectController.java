@@ -2,6 +2,8 @@ package com.jiraclone.controller;
 
 import com.jiraclone.dto.project.ProjectRequest;
 import com.jiraclone.dto.project.ProjectResponse;
+import com.jiraclone.dto.project_member.ProjectMemberRequest;
+import com.jiraclone.dto.project_member.ProjectMemberResponse;
 import com.jiraclone.entity.Project;
 import com.jiraclone.service.ProjectService;
 import lombok.RequiredArgsConstructor;
@@ -52,5 +54,19 @@ public class ProjectController {
         projectService.deleteProject(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/add-member")
+    public ResponseEntity<ProjectMemberResponse> addMember(@RequestBody ProjectMemberRequest request) {
+        ProjectMemberResponse projectMemberResponse = projectService.addMember(request);
+        return ResponseEntity.ok(projectMemberResponse);
+    }
+
+    @GetMapping("/{project_id}/members")
+    public ResponseEntity<List<ProjectMemberResponse>> getMembers(@PathVariable("project_id") UUID projectId) {
+        List<ProjectMemberResponse> result = projectService.getMember(projectId);
+        return  ResponseEntity.ok(result);
+    }
+
+
 
 }
