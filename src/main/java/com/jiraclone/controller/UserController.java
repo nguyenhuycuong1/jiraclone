@@ -4,6 +4,7 @@ import com.jiraclone.dto.user.UserResponse;
 import com.jiraclone.repository.UserRepository;
 import com.jiraclone.security.CustomUserDetails;
 import com.jiraclone.service.AvatarService;
+import com.jiraclone.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ public class UserController {
 
     private final UserRepository userRepository;
     private final AvatarService avatarService;
+    private final UserService userService;
 
     @GetMapping
     public ResponseEntity<List<UserResponse>> getAll() {
@@ -31,6 +33,11 @@ public class UserController {
                 .map(UserResponse::new)
                 .toList();
         return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/account")
+    public ResponseEntity<UserResponse> getAccount() {
+        return ResponseEntity.ok(userService.getAccount());
     }
 
     @PatchMapping(value = "/me/avatar", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

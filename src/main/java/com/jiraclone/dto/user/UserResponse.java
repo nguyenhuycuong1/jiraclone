@@ -1,22 +1,28 @@
 package com.jiraclone.dto.user;
 
 import com.jiraclone.entity.User;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserResponse {
 
-    private final UUID id;
-    private final UUID orgId;
-    private final String username;
-    private final String email;
-    private final String displayName;
-    private final String avatarUrl;
-    private final String role;
-    private final LocalDateTime createdAt;
+    private UUID id;
+    private UUID orgId;
+    private String username;
+    private String email;
+    private String displayName;
+    private String avatarUrl;
+    private String role;
+    private LocalDateTime createdAt;
 
     public UserResponse(User user) {
         this.id = user.getId();

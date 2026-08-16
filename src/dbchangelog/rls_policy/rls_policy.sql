@@ -16,3 +16,10 @@ CREATE POLICY org_isolation ON projects
             ''  -- nếu là chuỗi rỗng thì cũng thành NULL
              )::uuid
     );
+
+-- 20:30 12/8/2026 cuongnh
+-- RLS policy với bảng project_member
+CREATE POLICY org_isolation ON project_member
+       USING (
+           org_id = nullif(current_setting('app.current_org_id', true), '')::uuid
+       );
