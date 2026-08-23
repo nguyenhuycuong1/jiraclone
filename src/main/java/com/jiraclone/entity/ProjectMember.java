@@ -7,7 +7,14 @@ import lombok.Data;
 import java.util.UUID;
 
 @Entity()
-@Table(name = "project_member")
+@Table(name = "project_member",
+    uniqueConstraints = {
+        @UniqueConstraint(
+                name = "uk_project_member_user_project",
+                columnNames = {"user_id", "project_id"}
+        )
+    }
+)
 @Data()
 public class ProjectMember {
 

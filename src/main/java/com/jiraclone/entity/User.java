@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -51,12 +52,11 @@ public class User implements UserDetails {
     @Builder.Default
     private UserState status = UserState.PENDING_VERIFY;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "org_id", referencedColumnName = "id")
-    private Organization organization;
-
     @Builder.Default
     private boolean enabled = true;
+
+    @OneToMany(mappedBy = "user")
+    private List<OrgMember> orgMembers = new ArrayList<>();
 
     @Column(updatable = false)
     private LocalDateTime createdAt;

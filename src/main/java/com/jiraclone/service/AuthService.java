@@ -1,5 +1,6 @@
 package com.jiraclone.service;
 
+import com.jiraclone.config.TenantContextHolder;
 import com.jiraclone.dto.auth.LoginRequest;
 import com.jiraclone.dto.auth.LoginResult;
 import com.jiraclone.dto.auth.RegisterRequest;
@@ -120,7 +121,7 @@ public class AuthService {
         if (user.getStatus() == UserState.DELETED) {
             throw new AppException(HttpStatus.FORBIDDEN, "Account deleted. Please contact support.");
         }
-        String token = jwtTokenProvider.generateToken(toUserDetails(user));
+        String token = jwtTokenProvider.generateToken(toUserDetails(user), null);
         String refreshToken = generateRefreshToken(user).getToken();
         return new LoginResult(token, refreshToken, user.getUsername(), user.getEmail());
     }
@@ -161,7 +162,7 @@ public class AuthService {
         }
         User user = token.getUser();
         // Create new access token
-        String newToken = jwtTokenProvider.generateToken(toUserDetails(user));
+        String newToken = jwtTokenProvider.generateToken(toUserDetails(user), TenantContextHolder.getTenantId());
 
         // revoke old refresh token
         token.setRevoked(true);
@@ -230,13 +231,11 @@ public class AuthService {
     }
 
     private CustomUserDetails toUserDetails(User user) {
-        UUID orgId = user.getOrganization() != null ? user.getOrganization().getId() : null;
         return new CustomUserDetails(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
                 user.getPassword(),
-                orgId,
                 user.getAuthorities()
         );
     }

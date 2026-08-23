@@ -27,13 +27,13 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    public String generateToken(CustomUserDetails userDetails) {
+    public String generateToken(CustomUserDetails userDetails, String orgId) {
         var builder = Jwts.builder()
                 .subject(userDetails.getUsername())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + jwtExpirationMs));
-        if (userDetails.getOrgId() != null) {
-            builder.claim("org_id", userDetails.getOrgId().toString());
+        if (orgId != null) {
+            builder.claim("org_id", orgId);
         }
         return builder.signWith(getSigningKey()).compact();
     }
@@ -50,9 +50,7 @@ public class JwtTokenProvider {
         JwtPayload jwtPayload = extractJwtPayload(token);
         if (!jwtPayload.getUsername().equals(userDetails.getUsername())) return false;
         if (isTokenExpired(token)) return false;
-        String tokenOrgId = jwtPayload.getOrgId();
-        String userOrgId = userDetails.getOrgId() != null ? userDetails.getOrgId().toString() : null;
-        return Objects.equals(tokenOrgId, userOrgId);
+        return true;
     }
 
     private boolean isTokenExpired(String token) {

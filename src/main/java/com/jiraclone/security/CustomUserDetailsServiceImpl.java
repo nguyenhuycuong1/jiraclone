@@ -27,14 +27,11 @@ public class CustomUserDetailsServiceImpl implements UserDetailsService {
 
         List<GrantedAuthority> authorities = new ArrayList<>();
 
-        UUID orgId = user.getOrganization() != null ? user.getOrganization().getId() : null;
-
         return new CustomUserDetails(
                 user.getId(),
                 user.getEmail(),
                 user.getUsername(),
                 user.getPassword(),
-                orgId,
                 authorities
         );
     }

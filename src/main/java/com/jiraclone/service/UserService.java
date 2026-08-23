@@ -1,10 +1,10 @@
 package com.jiraclone.service;
 
-import com.jiraclone.dto.user.UserResponse;
+import com.jiraclone.dto.user.AccountUserResponse;
 import org.springframework.stereotype.Service;
 
 @Service
 public interface UserService {
 
-    UserResponse getAccount();
+    AccountUserResponse getAccount();
 }

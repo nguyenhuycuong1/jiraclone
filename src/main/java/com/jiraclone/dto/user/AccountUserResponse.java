@@ -15,7 +15,7 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserResponse {
+public class AccountUserResponse {
 
     private UUID id;
     private String username;
@@ -23,15 +23,22 @@ public class UserResponse {
     private String displayName;
     private String avatarUrl;
     private String role;
+    private List<OrgMemberResponse> organizations;
     private LocalDateTime createdAt;
 
-    public UserResponse(User user) {
+    public AccountUserResponse(User user) {
         this.id = user.getId();
         this.username = user.getUsername();
         this.email = user.getEmail();
         this.displayName = user.getDisplayName();
         this.avatarUrl = user.getAvatarUrl();
         this.role = user.getRole().name();
+        this.organizations = user.getOrgMembers().stream().map(
+                orgMember -> new OrgMemberResponse(
+                        orgMember.getOrganization(),
+                        orgMember.getOrgRole()
+                )
+        ).toList();
         this.createdAt = user.getCreatedAt();
     }
 }

@@ -1,6 +1,6 @@
 package com.jiraclone.controller;
 
-import com.jiraclone.dto.user.UserResponse;
+import com.jiraclone.dto.user.AccountUserResponse;
 import com.jiraclone.repository.UserRepository;
 import com.jiraclone.security.CustomUserDetails;
 import com.jiraclone.service.AvatarService;
@@ -27,16 +27,16 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<List<UserResponse>> getAll() {
-        List<UserResponse> users = userRepository.findAll()
+    public ResponseEntity<List<AccountUserResponse>> getAll() {
+        List<AccountUserResponse> users = userRepository.findAll()
                 .stream()
-                .map(UserResponse::new)
+                .map(AccountUserResponse::new)
                 .toList();
         return ResponseEntity.ok(users);
     }
 
     @GetMapping("/account")
-    public ResponseEntity<UserResponse> getAccount() {
+    public ResponseEntity<AccountUserResponse> getAccount() {
         return ResponseEntity.ok(userService.getAccount());
     }
 

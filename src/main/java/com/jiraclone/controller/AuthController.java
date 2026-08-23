@@ -2,6 +2,7 @@ package com.jiraclone.controller;
 
 import com.jiraclone.dto.auth.*;
 import com.jiraclone.service.AuthService;
+import com.jiraclone.service.OrganizationService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Duration;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -20,6 +22,7 @@ import java.time.Duration;
 public class AuthController {
 
     private final AuthService authService;
+    private final OrganizationService organizationService;
 
     @Value("${app.security.cookie.secure:false}")
     private boolean cookieSecure;
@@ -105,5 +108,11 @@ public class AuthController {
     public ResponseEntity<Void> resendOTP(@PathVariable String email) {
         authService.resendOTP(email);
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/set-org/{org_id}")
+    public ResponseEntity<JwtResponse> setCurrentOrg(@PathVariable UUID org_id) {
+        JwtResponse jwtResponse = organizationService.setCurrentOrganization(org_id);
+        return ResponseEntity.ok(jwtResponse);
     }
 }

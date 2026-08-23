@@ -30,18 +30,16 @@ public class TenantAwareDataSourceWrapper implements DataSource {
 
     private void setTenantOnConnection(Connection connection) throws SQLException {
         String tenantId = TenantContextHolder.getTenantId();
+        String value = (tenantId == null || tenantId.isEmpty()) ? "" : tenantId;
 
-        if (tenantId != null) {
-            try (Statement stmt = connection.createStatement()) {
-                stmt.execute(
-                        String.format("SET app.current_org_id = '%s'", tenantId.replace("'", "''"))
-                );
-            }
-        } else {
-            try (Statement stmt = connection.createStatement()) {
-                stmt.execute("SET app.current_org_id = ''");
-            }
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute("SET app.current_org_id = " + toSqlLiteral(value));
         }
+    }
+
+    /** Wrap a value in single quotes, doubling any embedded quote (Postgres escape). */
+    private static String toSqlLiteral(String value) {
+        return "'" + value.replace("'", "''") + "'";
     }
 
     @Override

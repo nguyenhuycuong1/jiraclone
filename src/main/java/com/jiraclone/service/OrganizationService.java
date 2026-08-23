@@ -1,5 +1,6 @@
 package com.jiraclone.service;
 
+import com.jiraclone.dto.auth.JwtResponse;
 import com.jiraclone.dto.organization.OrganizationRequest;
 import com.jiraclone.entity.Organization;
 
@@ -13,4 +14,6 @@ public interface OrganizationService {
     Organization updateOrganization(OrganizationRequest request, UUID id);
 
     void deleteOrganization(UUID id);
+
+    JwtResponse setCurrentOrganization(UUID org_id);
 }

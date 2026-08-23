@@ -1,0 +1,11 @@
+package com.jiraclone.repository;
+
+import com.jiraclone.entity.OrgMember;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.UUID;
+
+@Repository
+public interface OrgMemberRepository extends JpaRepository<OrgMember, UUID> {
+}
