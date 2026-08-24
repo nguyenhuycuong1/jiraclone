@@ -28,10 +28,14 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidation(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            errors.put(((FieldError) error).getField(), error.getDefaultMessage());
-        });
-        return ResponseEntity.badRequest().body(errors);
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(FieldError::getDefaultMessage)
+                .orElse("Invalid request");
+
+        return ResponseEntity.badRequest()
+                .body(Map.of("error", message));
     }
 }

@@ -27,6 +27,8 @@ public class Organization {
 
     private String slug;
 
+    private String description;
+
     private String status;
 
     @CreationTimestamp()

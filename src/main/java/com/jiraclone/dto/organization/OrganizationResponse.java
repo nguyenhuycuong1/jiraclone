@@ -13,5 +13,6 @@ public class OrganizationResponse {
     private String orgName;
     private String slug;
     private String status;
+    private String description;
     private LocalDateTime createdAt;
 }
